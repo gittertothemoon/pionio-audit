@@ -81,6 +81,9 @@ button.cta:active{transform:translateY(1px)}
 .step.now{color:var(--fg-1)} .step.now .tick{border-color:var(--accent-400)}
 .step.now .tick::after{content:'';width:8px;height:8px;border-radius:50%;background:var(--accent-400);animation:pulse 1s infinite}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+.lnote{margin-top:36px;font-family:var(--font-mono);font-size:13px;color:var(--fg-3);letter-spacing:.02em;
+  min-height:18px;opacity:0;transition:opacity .5s ease}
+.lnote.show{opacity:1}
 
 /* ---- result ---- */
 #result{padding:24px 0 80px}
@@ -181,6 +184,7 @@ button.cta:active{transform:translateY(1px)}
       <div class="step"><span class="tick"></span><span>Scatto lo screenshot e leggo il codice</span></div>
       <div class="step"><span class="tick"></span><span>Traduco i numeri in lingua umana</span></div>
     </div>
+    <div class="lnote" id="lnote"></div>
   </section>
 
   <!-- RESULT -->

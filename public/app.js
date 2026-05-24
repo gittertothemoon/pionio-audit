@@ -10,7 +10,14 @@ const esc = (s) =>
 const sevDot = { critico: "var(--danger)", attenzione: "var(--warn)", ok: "var(--accent-300)" };
 const sevLabel = { critico: "CRITICO", attenzione: "DA GUARDARE", ok: "✓ A POSTO" };
 
-let stepTimer;
+let stepTimer, noteTimer;
+const LOADING_NOTES = [
+  "Stesso metro per tutti i siti.",
+  "Misuriamo i byte davvero scaricati, non le stime.",
+  "Mobile e desktop, come conta Google.",
+  "Soglie ufficiali dei Core Web Vitals.",
+  "Niente email, niente registrazione.",
+];
 function runLoadingAnim() {
   const steps = [...document.querySelectorAll("#lsteps .step")];
   const bar = $("#lbar"); let i = 0;
@@ -24,12 +31,22 @@ function runLoadingAnim() {
   const tick = () => {
     if (i > 0) steps[i - 1].className = "step done";
     if (i < steps.length) { steps[i].className = "step now"; i++; }
+    // l'ultimo step resta "now" (pulsante) finché non arriva il risultato
+    if (i >= steps.length) clearInterval(stepTimer);
   };
   tick(); stepTimer = setInterval(tick, 2600);
+  // riga che ruota: dà qualcosa da leggere → l'attesa pesa meno
+  const note = $("#lnote"); let n = 0;
+  const showNote = () => {
+    note.classList.remove("show");
+    setTimeout(() => { note.textContent = LOADING_NOTES[n % LOADING_NOTES.length]; note.classList.add("show"); n++; }, 250);
+  };
+  showNote(); noteTimer = setInterval(showNote, 3200);
 }
 function stopLoadingAnim() {
-  clearInterval(stepTimer);
+  clearInterval(stepTimer); clearInterval(noteTimer);
   document.querySelectorAll("#lsteps .step").forEach((s) => (s.className = "step done"));
+  const note = $("#lnote"); if (note) note.classList.remove("show");
   const bar = $("#lbar"); bar.style.transition = "width .4s ease"; bar.style.width = "100%";
 }
 
