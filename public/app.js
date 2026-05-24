@@ -15,17 +15,22 @@ function runLoadingAnim() {
   const steps = [...document.querySelectorAll("#lsteps .step")];
   const bar = $("#lbar"); let i = 0;
   steps.forEach((s) => (s.className = "step"));
-  bar.style.width = "8%";
+  // la barra striscia di continuo e rallenta verso il fondo → non sembra mai bloccata
+  bar.style.transition = "none"; bar.style.width = "3%";
+  requestAnimationFrame(() => {
+    bar.style.transition = "width 13s cubic-bezier(.05,.7,.1,1)";
+    bar.style.width = "94%";
+  });
   const tick = () => {
     if (i > 0) steps[i - 1].className = "step done";
-    if (i < steps.length) { steps[i].className = "step now"; bar.style.width = 12 + i * 26 + "%"; i++; }
+    if (i < steps.length) { steps[i].className = "step now"; i++; }
   };
-  tick(); stepTimer = setInterval(tick, 1900);
+  tick(); stepTimer = setInterval(tick, 2600);
 }
 function stopLoadingAnim() {
   clearInterval(stepTimer);
   document.querySelectorAll("#lsteps .step").forEach((s) => (s.className = "step done"));
-  $("#lbar").style.width = "100%";
+  const bar = $("#lbar"); bar.style.transition = "width .4s ease"; bar.style.width = "100%";
 }
 
 function gradeColor(score) { return score >= 70 ? "var(--accent-400)" : score >= 50 ? "var(--warn)" : "var(--danger)"; }
@@ -135,7 +140,6 @@ async function audit(url) {
     const d = await r.json();
     stopLoadingAnim();
     if (!r.ok) throw new Error(d.error || "Errore");
-    await new Promise((res) => setTimeout(res, 400));
     renderResult(d);
   } catch (e) {
     show("landing");
