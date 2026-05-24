@@ -164,7 +164,14 @@ async function audit(url) {
   }
 }
 
-$("#form").addEventListener("submit", (e) => { e.preventDefault(); const u = $("#url").value.trim(); if (u) audit(u); });
+// la gente scrive svogliatamente: accettiamo "pionio.it", "www.pionio.it ", "PIONIO.it"…
+function normalizeUrl(raw) {
+  let u = (raw || "").trim().replace(/\s+/g, "");
+  if (!u) return "";
+  if (!/^https?:\/\//i.test(u)) u = "https://" + u;
+  return u;
+}
+$("#form").addEventListener("submit", (e) => { e.preventDefault(); const u = normalizeUrl($("#url").value); if (u) audit(u); });
 document.querySelectorAll(".chip").forEach((c) => c.addEventListener("click", () => audit(c.dataset.url)));
 
 // gli esempi "Prova:" servono solo in locale per testare → in pubblico li tolgo
