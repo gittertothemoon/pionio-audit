@@ -7,6 +7,13 @@ function show(name) { for (const k in sections) sections[k].classList.toggle("ac
 const esc = (s) =>
   String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
+// social riusabili (stessi stili .landing-footer/.soc del footer della home)
+const SOCIAL_HTML = `
+  <div class="landing-footer" style="margin-top:36px;padding-bottom:0">
+    <a class="soc" href="https://www.instagram.com/pionio_dev/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg></a>
+    <a class="soc" href="https://x.com/pionio_dev" target="_blank" rel="noopener" aria-label="X"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+  </div>`;
+
 const sevDot = { critico: "var(--danger)", attenzione: "var(--warn)", ok: "var(--accent-300)" };
 const sevLabel = { critico: "CRITICO", attenzione: "DA GUARDARE", ok: "✓ A POSTO" };
 
@@ -81,6 +88,7 @@ function renderResult(d) {
         <h2>Questo è un profilo ${esc(d.platformName)}, non un sito tuo</h2>
         <p>Il nostro audit serve per il sito web che <b>possiedi e gestisci tu</b> — non per i social, dove la pagina è costruita e controllata da loro. Incolla l'indirizzo del tuo sito e ci pensiamo noi.</p>
         <a class="cta" href="https://pionio.it" style="display:inline-block;line-height:62px;text-decoration:none">Non hai ancora un sito? → pionio.it</a>
+        ${SOCIAL_HTML}
       </div>`;
     $("#again-top").addEventListener("click", reset);
     show("result"); window.scrollTo({ top: 0, behavior: "smooth" });
@@ -103,12 +111,14 @@ function renderResult(d) {
         <h2>Questi problemi si sistemano.</h2>
         <p class="sub" style="margin-top:0">Lavoro definito, prezzo fisso. Nessun preventivo infinito.</p>
         <a class="cta" href="https://pionio.it" style="display:inline-block;line-height:62px;margin-top:28px;text-decoration:none">Parliamone → pionio.it</a>
+        ${SOCIAL_HTML}
       </div>`
     : `<div class="resfoot">
         <span class="eyebrow">Niente da segnalare</span>
         <h2>Questo sito è messo bene.</h2>
         <p class="sub" style="margin-top:0">Veloce e in ordine — complimenti. Se vuoi spingerlo ancora più in là, o ne hai un altro che arranca, ci siamo.</p>
         <a class="cta" href="https://pionio.it" style="display:inline-block;line-height:62px;margin-top:28px;text-decoration:none">Parliamone → pionio.it</a>
+        ${SOCIAL_HTML}
       </div>`;
 
   sections.result.innerHTML = `
@@ -172,9 +182,3 @@ function normalizeUrl(raw) {
   return u;
 }
 $("#form").addEventListener("submit", (e) => { e.preventDefault(); const u = normalizeUrl($("#url").value); if (u) audit(u); });
-document.querySelectorAll(".chip").forEach((c) => c.addEventListener("click", () => audit(c.dataset.url)));
-
-// gli esempi "Prova:" servono solo in locale per testare → in pubblico li tolgo
-if (!/^(localhost|127\.0\.0\.1|\[?::1\]?)$/.test(location.hostname)) {
-  document.querySelector(".chips")?.remove();
-}
