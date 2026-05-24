@@ -5,7 +5,7 @@
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
-import { dirname, join, extname } from "node:path";
+import { dirname, join, extname, resolve } from "node:path";
 import { launchBrowser } from "./lib/launch.mjs";
 import { runAudit } from "./lib/runAudit.mjs";
 import { assertPublicUrl, createLimiter } from "./lib/guard.mjs";
@@ -19,12 +19,26 @@ const browser = await launchBrowser();
 console.log("Chrome pronto.");
 
 const limiter = createLimiter({ maxConcurrent: 2, perIpPerMin: 6, maxQueue: 20 });
-const MIME = { ".ttf": "font/ttf", ".css": "text/css", ".html": "text/html; charset=utf-8", ".png": "image/png", ".svg": "image/svg+xml" };
+const MIME = { ".ttf": "font/ttf", ".css": "text/css", ".html": "text/html; charset=utf-8", ".png": "image/png", ".svg": "image/svg+xml", ".js": "text/javascript; charset=utf-8" };
 const clientIp = (req) => (req.headers["x-forwarded-for"]?.split(",")[0].trim()) || req.socket.remoteAddress || "?";
 
+// script esterno → CSP senza 'unsafe-inline' sugli script (vero scudo anti-XSS)
+const SECURITY_HEADERS = {
+  "content-security-policy":
+    "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
+  "x-content-type-options": "nosniff",
+  "x-frame-options": "DENY",
+  "referrer-policy": "strict-origin-when-cross-origin",
+};
+
+const PUBLIC = resolve(join(__dir, "public"));
 async function serveStatic(res, file) {
-  const buf = await readFile(file);
-  res.writeHead(200, { "content-type": MIME[extname(file)] || "application/octet-stream" });
+  const full = resolve(file);
+  if (full !== PUBLIC && !full.startsWith(PUBLIC + "/")) { // anti path-traversal
+    res.writeHead(403); return res.end("forbidden");
+  }
+  const buf = await readFile(full);
+  res.writeHead(200, { "content-type": MIME[extname(full)] || "application/octet-stream", ...SECURITY_HEADERS });
   res.end(buf);
 }
 
@@ -33,6 +47,7 @@ const server = createServer(async (req, res) => {
     const u = new URL(req.url, `http://localhost:${PORT}`);
 
     if (u.pathname === "/") return serveStatic(res, join(__dir, "public", "index.html"));
+    if (u.pathname === "/app.js") return serveStatic(res, join(__dir, "public", "app.js"));
     if (u.pathname.startsWith("/fonts/")) return serveStatic(res, join(__dir, "public", "fonts", u.pathname.replace("/fonts/", "")));
     if (u.pathname.startsWith("/brand/")) return serveStatic(res, join(__dir, "public", "brand", u.pathname.replace("/brand/", "")));
 
@@ -42,9 +57,18 @@ const server = createServer(async (req, res) => {
         res.writeHead(429, { "content-type": "application/json" });
         return res.end(JSON.stringify({ error: "Troppe analisi in poco tempo. Aspetta un minuto e riprova." }));
       }
+      const JSON_HEAD = { "content-type": "application/json", "x-content-type-options": "nosniff" };
       let body = "";
       let tooBig = false;
-      req.on("data", (c) => { body += c; if (body.length > 2048) { tooBig = true; req.destroy(); } });
+      req.on("data", (c) => {
+        body += c;
+        if (body.length > 2048 && !tooBig) {
+          tooBig = true;
+          res.writeHead(413, JSON_HEAD);
+          res.end(JSON.stringify({ error: "Richiesta troppo grande." }));
+          req.destroy();
+        }
+      });
       req.on("end", async () => {
         if (tooBig) return;
         let slot = false;
@@ -58,11 +82,11 @@ const server = createServer(async (req, res) => {
             runAudit(safeUrl, browser, { guardRequests: true }),
             new Promise((_, rej) => setTimeout(() => rej(new Error("L'analisi ha impiegato troppo. Riprova.")), AUDIT_TIMEOUT_MS)),
           ]);
-          res.writeHead(200, { "content-type": "application/json" });
+          res.writeHead(200, JSON_HEAD);
           res.end(JSON.stringify(data));
         } catch (e) {
           console.error("  errore:", e.message);
-          res.writeHead(400, { "content-type": "application/json" });
+          res.writeHead(400, JSON_HEAD);
           res.end(JSON.stringify({ error: e.message }));
         } finally {
           if (slot) limiter.release();
