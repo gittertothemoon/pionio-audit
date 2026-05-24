@@ -1,0 +1,10 @@
+{
+  "name": "pionio-audit",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "description": "Audit istantaneo di un sito — esca/lead tool Pionio (v1 grezzo)",
+  "dependencies": {
+    "playwright-core": "^1.60.0"
+  }
+}
