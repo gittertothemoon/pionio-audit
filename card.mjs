@@ -23,6 +23,11 @@ if (!existsSync(dataPath)) {
   process.exit(1);
 }
 const d = JSON.parse(readFileSync(dataPath, "utf8"));
+if (d.warningType === "platform") {
+  console.error(`${host} è un profilo ${d.platformName}: niente card, non è un sito da auditare.`);
+  process.exit(1);
+}
+const r = d.desktop; // la card usa la passata desktop
 
 const css = readFileSync(join(SKILL, "colors_and_type.css"), "utf8").replaceAll(
   "url('fonts/",
@@ -31,16 +36,16 @@ const css = readFileSync(join(SKILL, "colors_and_type.css"), "utf8").replaceAll(
 const pmarkB64 = `data:image/png;base64,${readFileSync(join(SKILL, "assets", "pionio-p-mark.png")).toString("base64")}`;
 
 const sevDot = { critico: "#f43f5e", attenzione: "#e0b341", ok: "#62a481" };
-const gradeColor = d.score >= 70 ? "var(--accent-400)" : d.score >= 50 ? "#e0b341" : "#f43f5e";
+const gradeColor = r.score >= 70 ? "var(--accent-400)" : r.score >= 50 ? "#e0b341" : "#f43f5e";
 
 // ordino: critici, poi attenzioni, poi ok — e tengo i più importanti
 const sevRank = { critico: 0, attenzione: 1, ok: 2 };
-const top = [...d.findings].sort((a, b) => sevRank[a.sev] - sevRank[b.sev]);
+const top = [...r.findings].sort((a, b) => sevRank[a.sev] - sevRank[b.sev]);
 
-const shot = d.shotB64 || "";
+const shot = r.shotB64 || "";
 
 // versione breve del verdetto per la card (prima frase)
-const verdettoBreve = d.verdetto.split(/(?<=[.!?])\s/)[0];
+const verdettoBreve = r.verdetto.split(/(?<=[.!?])\s/)[0];
 
 function findingsRows(n) {
   return top
@@ -108,9 +113,9 @@ const ig = `<!doctype html><html lang="it"><head>${sharedHead}<style>
     </div>
     ${shot ? `<img class="shot" src="${shot}">` : ""}
     <div class="scoreblock">
-      <div class="score">${d.score}<sup>/100</sup></div>
+      <div class="score">${r.score}<sup>/100</sup></div>
       <div>
-        <div class="grade">${d.grade}</div>
+        <div class="grade">${r.grade}</div>
         <div class="url">${d.host}</div>
       </div>
     </div>
@@ -153,9 +158,9 @@ const x = `<!doctype html><html lang="it"><head>${sharedHead}<style>
         <span class="eyebrow">Pionio · Audit istantaneo</span>
       </div>
       <div class="scoreblock">
-        <div class="score">${d.score}<sup>/100</sup></div>
+        <div class="score">${r.score}<sup>/100</sup></div>
         <div>
-          <div class="grade">${d.grade}</div>
+          <div class="grade">${r.grade}</div>
           <div class="url">${d.host}</div>
         </div>
       </div>
