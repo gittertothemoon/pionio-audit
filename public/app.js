@@ -102,6 +102,22 @@ function renderResult(d) {
     return;
   }
 
+  // MURO ANTI-BOT (Cloudflare & simili) → niente punteggio, lo diciamo onestamente
+  if (d.warningType === "challenge") {
+    sections.result.innerHTML = `
+      <div class="restop"><span class="again" id="again-top">↺ Analizza un altro sito</span></div>
+      <div class="platformcard">
+        <img class="pemoji" src="/brand/pmark.png" alt="">
+        <h2>Questo sito è protetto da un muro anti-bot</h2>
+        <p>${esc(d.warning)}</p>
+        <p style="opacity:.7">Riprova con un altro sito, o controlla il tuo — se non è dietro a un sistema così, lo misuro senza problemi.</p>
+        ${SOCIAL_HTML}
+      </div>`;
+    $("#again-top").addEventListener("click", reset);
+    show("result"); window.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
+
   const dk = d.desktop, mb = d.mobile;
   const worse = mb.score <= dk.score ? mb : dk;
   const worseLabel = worse === mb ? "vista mobile" : "vista desktop";
