@@ -17,7 +17,14 @@ const SOCIAL_HTML = `
 const sevDot = { critico: "var(--danger)", attenzione: "var(--warn)", ok: "var(--accent-300)" };
 const sevLabel = { critico: "CRITICO", attenzione: "DA GUARDARE", ok: "✓ A POSTO" };
 
-let stepTimer, noteTimer;
+let stepTimer, noteTimer, lastResult = null;
+// su mobile possiamo condividere il file direttamente (share sheet di sistema)
+const canShareFiles = (() => {
+  try {
+    return !!(navigator.canShare && navigator.canShare({ files: [new File([""], "t.png", { type: "image/png" })] })
+      && matchMedia("(pointer: coarse)").matches); // solo touch/mobile → desktop scarica
+  } catch { return false; }
+})();
 const LOADING_NOTES = [
   "Stesso metro per tutti i siti.",
   "Misuriamo i byte davvero scaricati, non le stime.",
@@ -102,14 +109,15 @@ function renderResult(d) {
   const egg = d.easterEgg ? `<div class="egg"><img class="egg-mark" src="/brand/pmark.png" alt=""><p>${d.easterEgg}</p></div>` : "";
   const warn = d.warning ? `<div class="warnbox"><span class="wi">⚠</span><p><b>Attenzione:</b> ${esc(d.warning)}</p></div>` : "";
 
-  // il finale si adatta: se non ci sono problemi veri non parliamo di "problemi da sistemare"
-  const hasProblems = worse.findings.some((f) => f.sev !== "ok");
+  // il finale si adatta: numero di problemi reali → messaggio specifico (converte meglio)
+  const nProblems = worse.findings.filter((f) => f.sev !== "ok").length;
+  const hasProblems = nProblems > 0;
   const findingsLabel = hasProblems ? `Cosa puoi migliorare · ${worseLabel}` : `Quello che abbiamo controllato · ${worseLabel}`;
   const footHtml = hasProblems
     ? `<div class="resfoot">
         <span class="eyebrow">E adesso?</span>
-        <h2>Questi problemi si sistemano.</h2>
-        <p class="sub" style="margin-top:0">Lavoro definito, prezzo fisso. Nessun preventivo infinito.</p>
+        <h2>${nProblems === 1 ? "C'è 1 cosa che ti costa clienti." : `Ci sono ${nProblems} cose che ti costano clienti.`}</h2>
+        <p class="sub" style="margin-top:0">Le sistemiamo noi — lavoro definito, prezzo fisso. Nessun preventivo infinito.</p>
         <a class="cta" href="https://pionio.it" style="display:inline-block;line-height:62px;margin-top:28px;text-decoration:none">Parliamone → pionio.it</a>
         ${SOCIAL_HTML}
       </div>`
@@ -122,7 +130,7 @@ function renderResult(d) {
       </div>`;
 
   sections.result.innerHTML = `
-    <div class="restop"><span class="again" id="again-top">↺ Analizza un altro sito</span></div>
+    <div class="restop"><span class="again" id="again-top">↺ Analizza un altro sito</span><span class="again" id="export-btn">${canShareFiles ? "↗ Condividi report" : "↓ Scarica report"}</span></div>
     ${egg}
     ${warn}
     <div class="dual">
@@ -147,9 +155,51 @@ function renderResult(d) {
     <div class="eyebrow" style="margin:0 0 14px 4px">${findingsLabel}</div>
     <div class="findings">${findingsHtml(worse.findings)}</div>
     ${footHtml}`;
+  lastResult = d;
   $("#again-top").addEventListener("click", reset);
+  $("#export-btn").addEventListener("click", exportReport);
   show("result");
   window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+async function exportReport() {
+  const btn = $("#export-btn");
+  if (!btn || !lastResult) return;
+  const orig = btn.textContent;
+  btn.textContent = "Preparo l'immagine…";
+  btn.style.pointerEvents = "none";
+  const name = "pionio-audit-" + (lastResult.host || "report") + ".png";
+  try {
+    const r = await fetch("/api/export", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify(lastResult),
+    });
+    if (!r.ok) throw new Error("export fallito");
+    const blob = await r.blob();
+    if (canShareFiles) {
+      // mobile: apre il menu di condivisione di sistema → IG/Storie/WhatsApp
+      const file = new File([blob], name, { type: "image/png" });
+      try {
+        await navigator.share({ files: [file], title: "Audit Pionio", text: "Audit del sito " + (lastResult.host || "") });
+      } catch (e) {
+        if (e && e.name !== "AbortError") throw e; // l'utente ha annullato → ok
+      }
+    } else {
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = name;
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    }
+  } catch {
+    btn.textContent = "Errore, riprova";
+    setTimeout(() => (btn.textContent = orig), 2000);
+    btn.style.pointerEvents = "";
+    return;
+  }
+  btn.textContent = orig;
+  btn.style.pointerEvents = "";
 }
 
 function reset() { show("landing"); $("#url").value = ""; $("#err").textContent = ""; }
