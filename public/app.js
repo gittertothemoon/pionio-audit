@@ -218,6 +218,7 @@ async function audit(url) {
     stopLoadingAnim();
     if (!r.ok) throw new Error(d.error || "Errore");
     renderResult(d);
+    if (window.umami) umami.track("audit_run", { host: d.host || url });
   } catch (e) {
     show("landing");
     $("#err").textContent = "⚠ " + e.message;

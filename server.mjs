@@ -30,7 +30,7 @@ const clientIp = (req) => (req.headers["x-forwarded-for"]?.split(",")[0].trim())
 // script esterno → CSP senza 'unsafe-inline' sugli script (vero scudo anti-XSS)
 const SECURITY_HEADERS = {
   "content-security-policy":
-    "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self'; font-src 'self'; connect-src 'self'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
+    "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' https://cloud.umami.is; font-src 'self'; connect-src 'self' https://cloud.umami.is https://api-gateway.umami.dev; base-uri 'none'; frame-ancestors 'none'; form-action 'self'",
   "x-content-type-options": "nosniff",
   "x-frame-options": "DENY",
   "referrer-policy": "strict-origin-when-cross-origin",
