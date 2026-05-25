@@ -111,9 +111,9 @@ function renderResult(d) {
 
   // il finale si adatta: numero di problemi reali → messaggio specifico (converte meglio)
   const nProblems = worse.findings.filter((f) => f.sev !== "ok").length;
-  const hasProblems = nProblems > 0;
-  const findingsLabel = hasProblems ? `Cosa puoi migliorare · ${worseLabel}` : `Quello che abbiamo controllato · ${worseLabel}`;
-  const footHtml = hasProblems
+  const positive = worse.score >= 90; // ≥90 → tono positivo (coerente col verdetto), niente conteggio
+  const findingsLabel = nProblems > 0 ? `Cosa puoi migliorare · ${worseLabel}` : `Quello che abbiamo controllato · ${worseLabel}`;
+  const footHtml = !positive
     ? `<div class="resfoot">
         <span class="eyebrow">E adesso?</span>
         <h2>${nProblems === 1 ? "C'è 1 cosa che ti costa clienti." : `Ci sono ${nProblems} cose che ti costano clienti.`}</h2>
