@@ -41,7 +41,7 @@ async function maybeRecycle() {
     recycling = false;
   }
 }
-const MIME = { ".ttf": "font/ttf", ".css": "text/css", ".html": "text/html; charset=utf-8", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".svg": "image/svg+xml", ".js": "text/javascript; charset=utf-8" };
+const MIME = { ".ttf": "font/ttf", ".woff2": "font/woff2", ".css": "text/css", ".html": "text/html; charset=utf-8", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".svg": "image/svg+xml", ".js": "text/javascript; charset=utf-8" };
 
 // cache risultati: stesso URL ri-analizzato entro 10 min → risposta istantanea, niente Chrome
 const CACHE_TTL = 10 * 60 * 1000;

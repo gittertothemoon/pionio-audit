@@ -228,7 +228,10 @@ async function exportReport() {
   btn.style.pointerEvents = "";
 }
 
-function reset() { show("landing"); $("#url").value = ""; $("#err").textContent = ""; }
+function reset() { stopLoadingAnim(); show("landing"); $("#url").value = ""; $("#err").textContent = ""; window.scrollTo({ top: 0, behavior: "smooth" }); }
+
+// click sul logo P → torna alla home (reset SPA, niente reload); l'href="/" resta come fallback se il JS non gira
+$("#home")?.addEventListener("click", (e) => { e.preventDefault(); reset(); });
 
 async function audit(url) {
   $("#err").textContent = "";
