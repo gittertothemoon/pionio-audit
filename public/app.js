@@ -232,7 +232,7 @@ function reset() { show("landing"); $("#url").value = ""; $("#err").textContent 
 
 async function audit(url) {
   $("#err").textContent = "";
-  $("#ltarget").textContent = url;
+  $("#ltarget").textContent = prettyUrl(url);
   show("loading"); runLoadingAnim();
   try {
     const r = await fetch("/api/audit", {
