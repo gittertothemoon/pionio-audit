@@ -14,6 +14,16 @@ const SOCIAL_HTML = `
     <a class="soc" href="https://x.com/pionio_dev" target="_blank" rel="noopener" aria-label="X"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
   </div>`;
 
+// URL leggibile: via la coda di tracking (?utm_…&gclid=…), tieni host + percorso.
+// Evita il muro di caratteri tipo mytheresa.com?dplink=true&utm_source=…&gclid=…
+function prettyUrl(u) {
+  try {
+    const x = new URL(u);
+    const path = x.pathname === "/" ? "" : x.pathname.replace(/\/$/, "");
+    return x.host + path;
+  } catch { return String(u).split("?")[0]; }
+}
+
 const sevDot = { critico: "var(--danger)", attenzione: "var(--warn)", ok: "var(--accent-300)" };
 const sevLabel = { critico: "CRITICO", attenzione: "DA GUARDARE", ok: "✓ A POSTO" };
 
@@ -163,7 +173,7 @@ function renderResult(d) {
         <div class="shot-wrap-mobile" style="margin-top:24px"><img class="shot-mobile" src="${esc(mb.shotB64)}" alt="${esc(d.host)} mobile"></div>
       </div>
     </div>
-    <div class="rurl">${esc(d.url)}</div>
+    <div class="rurl">${esc(prettyUrl(d.url))}</div>
     <div class="verdetto">
       <span class="eyebrow accent">Il verdetto</span>
       <p>${worse.verdetto}</p>
