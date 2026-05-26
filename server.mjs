@@ -16,10 +16,31 @@ const PORT = process.env.PORT || 4040;
 const AUDIT_TIMEOUT_MS = 70000;
 
 // un solo browser condiviso per tutte le richieste
-const browser = await launchBrowser();
+let browser = await launchBrowser();
 console.log("Chrome pronto.");
 
 const limiter = createLimiter({ maxConcurrent: 2, perIpPerMin: 6, maxQueue: 20 });
+
+// riciclo del browser: Chromium accumula memoria col tempo (un processo che vive
+// per sempre lentamente cresce). Dopo RECYCLE_AFTER usi, alla prima finestra in cui
+// non c'è nulla in volo, chiudo e rilancio → azzera il creep senza interrompere nessuno.
+const RECYCLE_AFTER = 80;
+let browserUses = 0, recycling = false;
+async function maybeRecycle() {
+  if (recycling || browserUses < RECYCLE_AFTER || limiter.activeCount() > 0) return;
+  recycling = true;
+  const old = browser;
+  try {
+    browser = await launchBrowser();
+    browserUses = 0;
+    await old.close().catch(() => {});
+    console.log("♻ browser riciclato.");
+  } catch (e) {
+    console.error("  riciclo browser fallito:", e.message);
+  } finally {
+    recycling = false;
+  }
+}
 const MIME = { ".ttf": "font/ttf", ".css": "text/css", ".html": "text/html; charset=utf-8", ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".svg": "image/svg+xml", ".js": "text/javascript; charset=utf-8" };
 
 // cache risultati: stesso URL ri-analizzato entro 10 min → risposta istantanea, niente Chrome
@@ -50,6 +71,14 @@ async function serveStatic(res, file) {
 const server = createServer(async (req, res) => {
   try {
     const u = new URL(req.url, `http://localhost:${PORT}`);
+
+    // healthcheck per Railway: 200 solo se il browser è vivo → se si è impallato,
+    // Railway lo vede e riavvia il servizio invece di servire errori.
+    if (u.pathname === "/health") {
+      const ok = !!browser && browser.isConnected();
+      res.writeHead(ok ? 200 : 503, { "content-type": "text/plain" });
+      return res.end(ok ? "ok" : "browser down");
+    }
 
     if (u.pathname === "/") return serveStatic(res, join(__dir, "public", "index.html"));
     if (u.pathname === "/app.js") return serveStatic(res, join(__dir, "public", "app.js"));
@@ -101,7 +130,7 @@ const server = createServer(async (req, res) => {
           res.writeHead(400, JSON_HEAD);
           res.end(JSON.stringify({ error: e.message }));
         } finally {
-          if (slot) limiter.release();
+          if (slot) { browserUses++; limiter.release(); maybeRecycle(); }
         }
       });
       return;
@@ -144,7 +173,7 @@ const server = createServer(async (req, res) => {
           res.writeHead(400, JSON_HEAD);
           res.end(JSON.stringify({ error: e.message }));
         } finally {
-          if (slot) limiter.release();
+          if (slot) { browserUses++; limiter.release(); maybeRecycle(); }
         }
       });
       return;
