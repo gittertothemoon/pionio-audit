@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="/brand/pmark.png">
+<link rel="apple-touch-icon" href="/brand/apple-touch-icon-180.png">
+<title>Privacy — Pionio Audit</title>
+<meta name="description" content="Cosa fa Pionio Audit con i dati: prende l'URL che incolli, lo misura e ti mostra il risultato. Nessuna email, nessun cookie, nessun dato personale conservato.">
+<style>
+@font-face { font-family:'Geist'; src:url('/fonts/Geist-Regular.woff2') format('woff2'); font-weight:400; font-display:swap; }
+@font-face { font-family:'Geist'; src:url('/fonts/Geist-Medium.woff2') format('woff2'); font-weight:500; font-display:swap; }
+@font-face { font-family:'Geist Mono'; src:url('/fonts/GeistMono-Regular.woff2') format('woff2'); font-weight:400; font-display:swap; }
+:root{
+  --bg:#09090b; --fg-1:#fafafa; --fg-2:#d4d4d8; --fg-3:#71717a;
+  --accent-300:#91c4a8; --accent-400:#62a481; --border:rgba(255,255,255,.10);
+  --font-sans:'Geist',system-ui,sans-serif; --font-mono:'Geist Mono',ui-monospace,monospace;
+}
+*{margin:0;box-sizing:border-box}
+html,body{background:var(--bg);color:var(--fg-1);font-family:var(--font-sans);-webkit-font-smoothing:antialiased;min-height:100%}
+body{
+  background-image:
+    radial-gradient(70% 50% at 85% -10%,rgba(48,107,77,.16),transparent 60%),
+    radial-gradient(50% 40% at -10% 110%,rgba(48,107,77,.10),transparent 60%);
+  background-attachment:fixed;
+}
+.wrap{max-width:680px;margin:0 auto;padding:48px 24px 80px}
+.top{display:flex;align-items:center;justify-content:space-between;margin-bottom:48px}
+.pmark{height:34px;width:34px;object-fit:contain}
+.back{font-family:var(--font-mono);font-size:13px;color:var(--fg-3);text-decoration:none;letter-spacing:.04em}
+.back:hover{color:var(--accent-400)}
+.eyebrow{font-family:var(--font-mono);font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--accent-400);display:block;margin-bottom:14px}
+h1{font-size:clamp(2rem,6vw,3rem);font-weight:500;line-height:1.02;letter-spacing:-.03em;margin-bottom:14px}
+.updated{font-family:var(--font-mono);font-size:12px;color:var(--fg-3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:28px}
+.lead{color:var(--fg-2);font-size:1.05rem;line-height:1.6;margin-bottom:40px}
+h2{font-size:1.15rem;font-weight:500;margin:34px 0 10px}
+p{color:var(--fg-2);line-height:1.65;margin-bottom:10px}
+a{color:var(--accent-400);text-decoration:underline;text-underline-offset:2px}
+a:hover{color:var(--accent-300)}
+ul{color:var(--fg-2);line-height:1.65;padding-left:20px;margin:6px 0 10px}
+li{margin-bottom:8px}
+strong{color:var(--fg-1);font-weight:500}
+.foot{margin-top:48px;padding-top:20px;border-top:1px solid var(--border);font-family:var(--font-mono);font-size:12px;color:var(--fg-3)}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <img class="pmark" src="/brand/pmark.png" alt="Pionio">
+      <a class="back" href="/">← torna allo strumento</a>
+    </div>
+
+    <span class="eyebrow">Privacy</span>
+    <h1>Cosa faccio con i tuoi dati</h1>
+    <p class="updated">Ultimo aggiornamento: 27 maggio 2026</p>
+
+    <p class="lead">
+      Pionio Audit è uno strumento gratuito: incolli l'indirizzo di un sito, lo apro con Chrome dai miei server,
+      lo misuro e ti mostro il risultato. <strong>Non ti chiedo né salvo email, nome o altri dati personali tuoi.</strong>
+      Niente registrazione, niente cookie di profilazione, niente banner.
+    </p>
+
+    <h2>Chi tratta i dati</h2>
+    <p>
+      Il titolare è <strong>Ivan Pantò</strong>, persona fisica che opera con il marchio <strong>Pionio</strong>.
+      Per qualsiasi domanda: <a href="mailto:pionio.dev@gmail.com">pionio.dev@gmail.com</a>.
+    </p>
+
+    <h2>Cosa raccolgo</h2>
+    <ul>
+      <li><strong>L'indirizzo che incolli.</strong> Mi serve per analizzare quel sito. L'URL e l'esito restano in una
+        cache temporanea sul server per pochi minuti (così non rianalizzo lo stesso sito a ripetizione), poi vengono scartati.</li>
+      <li><strong>Il tuo indirizzo IP</strong> viene letto al volo solo per limitare gli abusi (anti-spam) e per sicurezza:
+        non lo conservo in modo stabile.</li>
+      <li><strong>Statistiche di traffico anonime</strong> tramite Umami: <strong>senza cookie</strong>, non ti identificano
+        e non ti seguono su altri siti.</li>
+    </ul>
+
+    <h2>Cookie</h2>
+    <p>Nessuno. Lo strumento non installa cookie di profilazione né tracciatori pubblicitari, perciò non c'è alcun banner di consenso.</p>
+
+    <h2>A chi comunico i dati</h2>
+    <p>
+      Non vendo e non cedo nulla. Mi appoggio a <strong>Railway</strong> (hosting/esecuzione) e a <strong>Umami</strong>
+      (statistiche anonime). Eventuali trasferimenti fuori dall'Unione Europea avvengono con le garanzie previste dal GDPR.
+    </p>
+
+    <h2>I tuoi diritti</h2>
+    <p>
+      Dato che non conservo dati personali riferibili a te, di norma non c'è nulla da cancellare. Per qualsiasi richiesta
+      o dubbio scrivimi a <a href="mailto:pionio.dev@gmail.com">pionio.dev@gmail.com</a>. Puoi anche proporre reclamo al
+      <a href="https://www.garanteprivacy.it" target="_blank" rel="noopener">Garante per la protezione dei dati personali</a>.
+    </p>
+
+    <div class="foot">Pionio Audit · audit.pionio.it · uno strumento di Pionio Web Design Studio</div>
+  </div>
+</body>
+</html>

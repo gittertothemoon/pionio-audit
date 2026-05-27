@@ -81,6 +81,7 @@ const server = createServer(async (req, res) => {
     }
 
     if (u.pathname === "/") return serveStatic(res, join(__dir, "public", "index.html"));
+    if (u.pathname === "/privacy") return serveStatic(res, join(__dir, "public", "privacy.html"));
     if (u.pathname === "/app.js") return serveStatic(res, join(__dir, "public", "app.js"));
     if (u.pathname.startsWith("/fonts/")) return serveStatic(res, join(__dir, "public", "fonts", u.pathname.replace("/fonts/", "")));
     if (u.pathname.startsWith("/brand/")) return serveStatic(res, join(__dir, "public", "brand", u.pathname.replace("/brand/", "")));
