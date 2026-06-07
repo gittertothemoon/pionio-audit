@@ -1,53 +1,55 @@
 # Pionio Audit
 
-Tool di **audit istantaneo di un sito**: dai un URL, in pochi secondi misura il
-sito su **mobile e desktop** con Chromium headless e restituisce un punteggio
-graduato con consigli scritti in linguaggio umano. Pensato come strumento
-gratuito di lead-gen per [Pionio](https://pionio.it).
+![Pionio Audit](public/brand/og.jpg)
 
-Motore unico (`lib/runAudit.mjs`) condiviso tra **server web** e **CLI**, così
-punteggi e tono sono identici ovunque.
+An **instant website audit** tool: give it a URL and in a few seconds it measures
+the site on **mobile and desktop** with headless Chromium, returning a graduated
+score with advice written in plain human language. Built as a free lead-gen tool
+for [Pionio](https://pionio.it).
 
-## Caratteristiche
+A single engine (`lib/runAudit.mjs`) is shared between the **web server** and the
+**CLI**, so scores and tone are identical everywhere.
 
-- **Doppia misura** mobile (390×844) + desktop (1600×900) con UA Chrome reali
-  per non farsi bloccare dai muri anti-bot.
-- **Scoring graduato** + messaggi di errore tradotti in linguaggio comprensibile
-  (DNS, SSL, timeout, crash…).
-- **Hardening del server** (`server.mjs`):
-  - anti-SSRF: blocca `localhost` e IP privati (`lib/guard.mjs`)
-  - rate limit per IP (6/min), max 2 analisi concorrenti, coda, timeout 70s
-  - CSP senza `unsafe-inline` sugli script, `X-Frame-Options: DENY`, `nosniff`
-  - **un solo browser condiviso** con riciclo periodico per contenere il
-    memory-creep di Chromium
-  - cache dei risultati (stesso URL entro 10 min → risposta istantanea)
-- **Card social esportabile** (IG 1080×1350 / X 1600×900) dal risultato.
-- **Zero dipendenze pesanti**: solo `playwright-core`; font e logo serviti da
+## Features
+
+- **Dual measurement** — mobile (390×844) + desktop (1600×900) with real Chrome
+  user agents, so anti-bot walls don't block the audit.
+- **Graduated scoring** + technical errors translated into understandable
+  messages (DNS, SSL, timeout, crash…).
+- **Hardened server** (`server.mjs`):
+  - anti-SSRF: blocks `localhost` and private IPs (`lib/guard.mjs`)
+  - rate limiting per IP (6/min), max 2 concurrent audits, queue, 70s timeout
+  - CSP with no `unsafe-inline` on scripts, `X-Frame-Options: DENY`, `nosniff`
+  - **a single shared browser** with periodic recycling to contain Chromium's
+    memory creep
+  - result caching (same URL within 10 min → instant response)
+- **Shareable social card** (IG 1080×1350 / X 1600×900) from the result.
+- **No heavy dependencies** — only `playwright-core`; fonts and logo served from
   `public/`.
 
 ## Stack
 
-| Ambito | Tecnologia |
+| Area | Technology |
 | --- | --- |
-| Runtime | Node.js (ESM, `http` nativo, nessun framework) |
+| Runtime | Node.js (ESM, native `http`, no framework) |
 | Browser automation | Playwright (`playwright-core`) + Chromium |
-| Deploy | Docker (immagine ufficiale Playwright) su Railway |
+| Deploy | Docker (official Playwright image) on Railway |
 
-## Uso
+## Usage
 
-### Server web
+### Web server
 
 ```bash
 npm start            # http://localhost:4040
 ```
 
-In produzione ascolta su `process.env.PORT` (iniettata da Railway).
+In production it listens on `process.env.PORT` (injected by Railway).
 
 ### CLI
 
 ```bash
-npm run audit https://esempio.it   # scrive report HTML + JSON in report/
-npm run card  esempio.it           # genera la card social dal report
+npm run audit https://example.com   # writes HTML + JSON report to report/
+npm run card  example.com           # builds the social card from the report
 ```
 
 ### Docker
@@ -57,31 +59,31 @@ docker build -t pionio-audit .
 docker run -p 4040:4040 pionio-audit
 ```
 
-## Configurazione
+## Configuration
 
-| Variabile | Default | Scopo |
+| Variable | Default | Purpose |
 | --- | --- | --- |
-| `PORT` | `4040` | Porta del server (Railway la inietta) |
-| `PW_CHANNEL` | `chrome` in locale, bundled in container | Canale browser di Playwright |
-| `PIONIO_SKILL_DIR` | `./brand` | Cartella con gli asset di brand (CSS + font + p-mark) usati dalla card CLI |
+| `PORT` | `4040` | Server port (Railway injects it) |
+| `PW_CHANNEL` | `chrome` locally, bundled in container | Playwright browser channel |
+| `PIONIO_SKILL_DIR` | `./brand` | Folder with brand assets (CSS + fonts + p-mark) used by the CLI card |
 
-> La card CLI (`audit.mjs` / `card.mjs`) usa asset di brand Pionio esterni al
-> repo: punta `PIONIO_SKILL_DIR` alla cartella che li contiene. Il **server web**
-> è invece self-contained (`lib/exportCard.mjs` + `public/`).
+> The CLI card (`audit.mjs` / `card.mjs`) uses Pionio brand assets that live
+> outside the repo: point `PIONIO_SKILL_DIR` at the folder that holds them. The
+> **web server** is self-contained (`lib/exportCard.mjs` + `public/`).
 
-## Struttura
+## Structure
 
 ```
-server.mjs          # server HTTP: routing, sicurezza, cache, riciclo browser
-audit.mjs           # CLI: audit singolo → report/ HTML+JSON
-card.mjs            # CLI: card social da un report
+server.mjs          # HTTP server: routing, security, cache, browser recycling
+audit.mjs           # CLI: single audit → HTML+JSON in report/
+card.mjs            # CLI: social card from a report
 lib/
-├── runAudit.mjs    # motore di misura e scoring (condiviso)
-├── launch.mjs      # avvio browser
+├── runAudit.mjs    # measurement + scoring engine (shared)
+├── launch.mjs      # browser launch
 ├── guard.mjs       # anti-SSRF + rate limiter
-└── exportCard.mjs  # card lato server
-public/             # frontend statico, font, brand
-Dockerfile          # immagine Playwright per Railway
+└── exportCard.mjs  # server-side card
+public/             # static frontend, fonts, brand
+Dockerfile          # Playwright image for Railway
 ```
 
-Vedi `DEPLOY.md` per la procedura di deploy su Railway con dominio custom.
+See `DEPLOY.md` for the Railway deploy procedure with a custom domain.
