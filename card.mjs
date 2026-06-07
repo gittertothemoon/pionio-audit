@@ -10,7 +10,9 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const __dir = dirname(fileURLToPath(import.meta.url));
-const SKILL = "/Users/ivanpanto/.claude/skills/pionio-design";
+// Asset di brand (CSS + font + p-mark) per la card esportabile. Esterni al repo:
+// imposta PIONIO_SKILL_DIR per puntarci, altrimenti ./brand in locale.
+const SKILL = process.env.PIONIO_SKILL_DIR || join(__dir, "brand");
 
 const host = process.argv[2];
 if (!host) {
