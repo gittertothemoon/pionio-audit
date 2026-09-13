@@ -262,3 +262,17 @@ function normalizeUrl(raw) {
   return u;
 }
 $("#form").addEventListener("submit", (e) => { e.preventDefault(); const u = normalizeUrl($("#url").value); if (u) audit(u); });
+
+// pionio.it can hand over the site to check: audit.pionio.it/?url=example.com starts right away.
+// The parameter is dropped from the address bar so a refresh doesn't run the same audit again.
+{
+  const params = new URLSearchParams(location.search);
+  const handed = params.get("url");
+  if (handed) {
+    params.delete("url");
+    const q = params.toString();
+    history.replaceState(null, "", location.pathname + (q ? "?" + q : "") + location.hash);
+    const u = normalizeUrl(handed);
+    if (u) { $("#url").value = handed; audit(u); }
+  }
+}
